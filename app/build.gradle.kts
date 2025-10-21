@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("com.google.devtools.ksp") version "2.0.21-1.0.25"
 }
 
 android {
@@ -41,6 +42,29 @@ android {
 
 dependencies {
 
+    // Jetpack Compose
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.material:material-icons-extended")
+
+    // ViewModel
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
+
+    // Navigation Compose
+    implementation("androidx.navigation:navigation-compose:2.8.5")
+    implementation("androidx.navigation:navigation-runtime-ktx:2.8.5")
+
+    // DataStore
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
+
+    // Room Database
+    implementation("androidx.room:room-runtime:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1")
+    ksp("androidx.room:room-compiler:2.6.1")
+
+    // Retrofit (para API)
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
