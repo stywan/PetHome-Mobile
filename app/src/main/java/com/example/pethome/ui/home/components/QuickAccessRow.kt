@@ -6,7 +6,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun QuickAccessRow() {
+fun QuickAccessRow(onNavigate: (String) -> Unit = {}) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -14,14 +14,16 @@ fun QuickAccessRow() {
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         QuickAccessCard(
-            title = "Visita veterinaria a domicilio",
-            buttonText = "Agenda aquí",
-            modifier = Modifier.weight(1f)
+            title = "Mis Mascotas",
+            buttonText = "Ver todas",
+            modifier = Modifier.weight(1f),
+            onClick = { onNavigate("pet_list") }
         )
         QuickAccessCard(
             title = "Servicios veterinarios",
             buttonText = "Ver más",
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
+            onClick = { onNavigate("service_list") }
         )
     }
 }

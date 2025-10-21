@@ -17,10 +17,11 @@ import com.example.pethome.ui.home.components.QuickAccessRow
 
 @Composable
 fun HomeScreen(
-    onNavigate: (String) -> Unit = {}
+    onNavigate: (String) -> Unit = {},
+    onLogout: () -> Unit = {}
 ) {
     Scaffold(
-        topBar = { HomeTopBar() },
+        topBar = { HomeTopBar(onLogout = onLogout) },
         bottomBar = { BottomNavBar(onNavigate) }
     ) { padding ->
         LazyColumn(
@@ -29,9 +30,8 @@ fun HomeScreen(
                 .padding(padding)
         ) {
             item { BannerCard() }
-            item { QuickAccessRow() }
+            item { QuickAccessRow(onNavigate = onNavigate) }
             item { MedicineSchedule() }
-            // Aquí puedes seguir agregando secciones
         }
     }
 }

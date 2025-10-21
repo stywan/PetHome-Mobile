@@ -16,17 +16,21 @@ import androidx.compose.ui.unit.dp
 fun QuickAccessCard(
     title: String,
     buttonText: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit = {}
 ) {
     Card(
         shape = RoundedCornerShape(16.dp),
-        modifier = modifier, // Aquí aplicamos el weight desde el Row
+        modifier = modifier,
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
             Icon(
                 Icons.Default.FavoriteBorder,
@@ -41,7 +45,7 @@ fun QuickAccessCard(
             )
             Spacer(modifier = Modifier.height(8.dp))
             Button(
-                onClick = { },
+                onClick = onClick,
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7A5DE8))
             ) {
                 Text(buttonText, color = Color.White)
