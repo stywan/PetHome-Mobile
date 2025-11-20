@@ -1,5 +1,6 @@
 package com.example.pethome.ui.services
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -11,11 +12,15 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.pethome.R
 import com.example.pethome.data.model.VeterinaryService
 import com.example.pethome.viewmodel.ServiceViewModel
 import java.text.NumberFormat
@@ -106,107 +111,102 @@ fun ServiceCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         onClick = onClick
     ) {
-        Column(
-            modifier = Modifier.padding(20.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
+        Column {
+            // Imagen del servicio
+            Image(
+                painter = painterResource(id = getServiceImage(service.category)),
+                contentDescription = service.name,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(160.dp)
+                    .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
+                contentScale = ContentScale.Crop
+            )
+
+            Column(
+                modifier = Modifier.padding(20.dp)
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    // Categoría
-                    Surface(
-                        shape = RoundedCornerShape(8.dp),
-                        color = getCategoryColor(service.category).copy(alpha = 0.15f)
-                    ) {
-                        Text(
-                            text = service.category,
-                            fontSize = 12.sp,
-                            color = getCategoryColor(service.category),
-                            fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    // Nombre del servicio
-                    Text(
-                        text = service.name,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF2D2D2D)
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    // Descripción corta
-                    Text(
-                        text = service.shortDescription,
-                        fontSize = 14.sp,
-                        color = Color.Gray,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-
-                Spacer(modifier = Modifier.width(12.dp))
-
-                // Icono según categoría
-                Surface(
-                    modifier = Modifier.size(56.dp),
-                    shape = RoundedCornerShape(28.dp),
-                    color = getCategoryColor(service.category).copy(alpha = 0.1f)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.Top
                 ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            getCategoryIcon(service.category),
-                            contentDescription = null,
-                            tint = getCategoryColor(service.category),
-                            modifier = Modifier.size(28.dp)
+                    Column(modifier = Modifier.weight(1f)) {
+                        // Categoría
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = getCategoryColor(service.category).copy(alpha = 0.15f)
+                        ) {
+                            Text(
+                                text = service.category,
+                                fontSize = 12.sp,
+                                color = getCategoryColor(service.category),
+                                fontWeight = FontWeight.SemiBold,
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        // Nombre del servicio
+                        Text(
+                            text = service.name,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF2D2D2D)
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        // Descripción corta
+                        Text(
+                            text = service.shortDescription,
+                            fontSize = 14.sp,
+                            color = Color.Gray,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
-            }
 
-            Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-            // Precio y duración
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        Icons.Default.Schedule,
-                        contentDescription = null,
-                        tint = Color.Gray,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = "${service.duration} min",
-                        fontSize = 14.sp,
-                        color = Color.Gray
-                    )
-                }
+                // Precio y duración
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Default.Schedule,
+                            contentDescription = null,
+                            tint = Color.Gray,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "${service.duration} min",
+                            fontSize = 14.sp,
+                            color = Color.Gray
+                        )
+                    }
 
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = formatPrice(service.price),
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF7A5DE8)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Icon(
-                        Icons.Default.ArrowForward,
-                        contentDescription = null,
-                        tint = Color(0xFF7A5DE8),
-                        modifier = Modifier.size(20.dp)
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = formatPrice(service.price),
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF7A5DE8)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(
+                            Icons.Default.ArrowForward,
+                            contentDescription = null,
+                            tint = Color(0xFF7A5DE8),
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
                 }
             }
         }
@@ -238,4 +238,15 @@ fun getCategoryColor(category: String) = when (category) {
 fun formatPrice(price: Double): String {
     val format = NumberFormat.getCurrencyInstance(Locale("es", "CO"))
     return format.format(price)
+}
+
+fun getServiceImage(category: String): Int = when (category) {
+    "Consulta" -> R.drawable.servicio_general
+    "Prevención" -> R.drawable.servicio_general
+    "Estética" -> R.drawable.servicio_limpieza
+    "Cirugía" -> R.drawable.servicio_cirugia
+    "Especializada" -> R.drawable.servicio_general
+    "Diagnóstico" -> R.drawable.servicio_examenes
+    "Urgencia" -> R.drawable.servicio_cirugia
+    else -> R.drawable.servicio_general
 }

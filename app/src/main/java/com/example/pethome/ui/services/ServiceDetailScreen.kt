@@ -1,5 +1,7 @@
 package com.example.pethome.ui.services
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -12,8 +14,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.pethome.data.model.Pet
@@ -92,61 +98,56 @@ fun ServiceDetailScreen(
                     colors = CardDefaults.cardColors(containerColor = Color.White),
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
-                    Column(
-                        modifier = Modifier.padding(24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        // Icono grande
-                        Surface(
-                            modifier = Modifier.size(100.dp),
-                            shape = RoundedCornerShape(50.dp),
-                            color = getCategoryColor(service!!.category).copy(alpha = 0.15f)
+                    Column {
+                        // Imagen del servicio
+                        Image(
+                            painter = painterResource(id = getServiceImage(service!!.category)),
+                            contentDescription = service!!.name,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp)
+                                .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
+                            contentScale = ContentScale.Crop
+                        )
+
+                        Column(
+                            modifier = Modifier.padding(24.dp),
+                            horizontalAlignment = Alignment.Start
                         ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    getCategoryIcon(service!!.category),
-                                    contentDescription = null,
-                                    tint = getCategoryColor(service!!.category),
-                                    modifier = Modifier.size(50.dp)
+                            // Categoría
+                            Surface(
+                                shape = RoundedCornerShape(12.dp),
+                                color = getCategoryColor(service!!.category).copy(alpha = 0.15f)
+                            ) {
+                                Text(
+                                    text = service!!.category,
+                                    fontSize = 13.sp,
+                                    color = getCategoryColor(service!!.category),
+                                    fontWeight = FontWeight.SemiBold,
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                                 )
                             }
-                        }
 
-                        Spacer(modifier = Modifier.height(16.dp))
+                            Spacer(modifier = Modifier.height(12.dp))
 
-                        // Categoría
-                        Surface(
-                            shape = RoundedCornerShape(12.dp),
-                            color = getCategoryColor(service!!.category).copy(alpha = 0.15f)
-                        ) {
+                            // Nombre
                             Text(
-                                text = service!!.category,
-                                fontSize = 13.sp,
-                                color = getCategoryColor(service!!.category),
-                                fontWeight = FontWeight.SemiBold,
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                                text = service!!.name,
+                                fontSize = 24.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF2D2D2D)
+                            )
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            // Precio
+                            Text(
+                                text = formatPrice(service!!.price),
+                                fontSize = 28.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF7A5DE8)
                             )
                         }
-
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        // Nombre
-                        Text(
-                            text = service!!.name,
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF2D2D2D)
-                        )
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        // Precio
-                        Text(
-                            text = formatPrice(service!!.price),
-                            fontSize = 28.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF7A5DE8)
-                        )
                     }
                 }
 
@@ -324,109 +325,260 @@ fun ReservationDialog(
         "02:00 PM", "03:00 PM", "04:00 PM", "05:00 PM"
     )
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(
-                "Reservar: ${service.name}",
-                fontWeight = FontWeight.Bold
-            )
-        },
-        text = {
+    androidx.compose.ui.window.Dialog(
+        onDismissRequest = onDismiss
+    ) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth(),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+        ) {
             Column(
-                modifier = Modifier.verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp)
             ) {
-                // Selector de mascota
-                Text("Selecciona tu mascota", fontWeight = FontWeight.SemiBold)
-                ExposedDropdownMenuBox(
-                    expanded = expanded,
-                    onExpandedChange = { expanded = !expanded }
+                // Title with close button
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    OutlinedTextField(
-                        value = pets.find { it.id == formState.selectedPetId }?.name ?: "Seleccionar",
-                        onValueChange = {},
-                        readOnly = true,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .menuAnchor(),
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color(0xFF7A5DE8)
-                        )
-                    )
-                    ExposedDropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false }
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.weight(1f)
                     ) {
-                        pets.forEach { pet ->
-                            DropdownMenuItem(
-                                text = { Text(pet.name) },
-                                onClick = {
-                                    onPetSelected(pet.id)
-                                    expanded = false
-                                }
+                        Icon(
+                            Icons.Default.CalendarMonth,
+                            contentDescription = null,
+                            tint = Color(0xFF7A5DE8),
+                            modifier = Modifier.size(28.dp)
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text(
+                                "Reservar Cita",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 20.sp,
+                                color = Color(0xFF2D2D2D)
+                            )
+                            Text(
+                                service.name,
+                                fontSize = 14.sp,
+                                color = Color.Gray,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                     }
+
+                    IconButton(
+                        onClick = onDismiss,
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.Close,
+                            contentDescription = "Cerrar",
+                            tint = Color.Gray
+                        )
+                    }
                 }
 
-                // Selector de hora (simplificado)
-                Text("Selecciona la hora", fontWeight = FontWeight.SemiBold)
+                Spacer(modifier = Modifier.height(16.dp))
+                HorizontalDivider(color = Color(0xFFE0E0E0))
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // Content
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
+                // Selector de mascota
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    timeSlots.chunked(4).forEach { row ->
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Default.Pets,
+                            contentDescription = null,
+                            tint = Color(0xFF7A5DE8),
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            "Selecciona tu mascota",
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 15.sp,
+                            color = Color(0xFF2D2D2D)
+                        )
+                    }
+
+                    ExposedDropdownMenuBox(
+                        expanded = expanded,
+                        onExpandedChange = { expanded = !expanded }
+                    ) {
+                        OutlinedTextField(
+                            value = pets.find { it.id == formState.selectedPetId }?.name ?: "Seleccionar mascota",
+                            onValueChange = {},
+                            readOnly = true,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .menuAnchor(),
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = Color(0xFF7A5DE8),
+                                unfocusedBorderColor = Color(0xFFE0E0E0)
+                            ),
+                            shape = RoundedCornerShape(12.dp)
+                        )
+                        ExposedDropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false }
                         ) {
-                            row.forEach { time ->
-                                FilterChip(
-                                    selected = formState.selectedTime == time,
-                                    onClick = {
-                                        onTimeSelected(time)
-                                        onDateSelected(System.currentTimeMillis() + 86400000) // Mañana
+                            pets.forEach { pet ->
+                                DropdownMenuItem(
+                                    text = {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Icon(
+                                                Icons.Default.Pets,
+                                                contentDescription = null,
+                                                tint = Color(0xFF7A5DE8),
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                            Spacer(modifier = Modifier.width(12.dp))
+                                            Text(pet.name)
+                                        }
                                     },
-                                    label = { Text(time, fontSize = 12.sp) },
-                                    modifier = Modifier.weight(1f)
+                                    onClick = {
+                                        onPetSelected(pet.id)
+                                        expanded = false
+                                    }
                                 )
                             }
                         }
                     }
                 }
 
+                // Selector de hora
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Default.Schedule,
+                            contentDescription = null,
+                            tint = Color(0xFF7A5DE8),
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            "Selecciona la hora",
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 15.sp,
+                            color = Color(0xFF2D2D2D)
+                        )
+                    }
+
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        timeSlots.chunked(4).forEach { row ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                row.forEach { time ->
+                                    FilterChip(
+                                        selected = formState.selectedTime == time,
+                                        onClick = {
+                                            onTimeSelected(time)
+                                            onDateSelected(System.currentTimeMillis() + 86400000) // Mañana
+                                        },
+                                        label = { Text(time, fontSize = 12.sp, fontWeight = FontWeight.Medium) },
+                                        modifier = Modifier.weight(1f),
+                                        colors = FilterChipDefaults.filterChipColors(
+                                            selectedContainerColor = Color(0xFF7A5DE8),
+                                            selectedLabelColor = Color.White,
+                                            containerColor = Color(0xFFF5F5F5),
+                                            labelColor = Color(0xFF666666)
+                                        ),
+                                        border = FilterChipDefaults.filterChipBorder(
+                                            enabled = true,
+                                            selected = formState.selectedTime == time,
+                                            borderColor = Color.Transparent,
+                                            selectedBorderColor = Color.Transparent
+                                        )
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
                 // Notas
-                OutlinedTextField(
-                    value = formState.notes,
-                    onValueChange = onNotesChange,
-                    label = { Text("Notas (opcional)") },
-                    modifier = Modifier.fillMaxWidth(),
-                    maxLines = 3,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color(0xFF7A5DE8)
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Default.EditNote,
+                            contentDescription = null,
+                            tint = Color(0xFF7A5DE8),
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            "Notas adicionales (opcional)",
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 15.sp,
+                            color = Color(0xFF2D2D2D)
+                        )
+                    }
+
+                    OutlinedTextField(
+                        value = formState.notes,
+                        onValueChange = onNotesChange,
+                        placeholder = { Text("Añade cualquier información relevante...", color = Color.Gray) },
+                        modifier = Modifier.fillMaxWidth(),
+                        maxLines = 3,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color(0xFF7A5DE8),
+                            unfocusedBorderColor = Color(0xFFE0E0E0)
+                        ),
+                        shape = RoundedCornerShape(12.dp)
                     )
-                )
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = onConfirm,
-                enabled = !formState.isLoading,
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7A5DE8))
-            ) {
-                if (formState.isLoading) {
-                    CircularProgressIndicator(
-                        color = Color.White,
-                        modifier = Modifier.size(20.dp)
-                    )
-                } else {
-                    Text("Confirmar Reserva")
                 }
             }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancelar")
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Confirm Button
+                Button(
+                    onClick = onConfirm,
+                    enabled = !formState.isLoading,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF7A5DE8),
+                        disabledContainerColor = Color(0xFF7A5DE8).copy(alpha = 0.5f)
+                    ),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp)
+                ) {
+                    if (formState.isLoading) {
+                        CircularProgressIndicator(
+                            color = Color.White,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    } else {
+                        Icon(
+                            Icons.Default.Check,
+                            contentDescription = null,
+                            modifier = Modifier.size(22.dp)
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            "Confirmar Reserva",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp
+                        )
+                    }
+                }
             }
         }
-    )
+    }
 }

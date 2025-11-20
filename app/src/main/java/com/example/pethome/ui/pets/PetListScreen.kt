@@ -30,6 +30,11 @@ fun PetListScreen(
     var petToDelete by remember { mutableStateOf<Pet?>(null) }
     var showDeleteDialog by remember { mutableStateOf(false) }
 
+    // Refrescar la lista cada vez que se entra a esta pantalla
+    LaunchedEffect(Unit) {
+        viewModel.refreshPets()
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(

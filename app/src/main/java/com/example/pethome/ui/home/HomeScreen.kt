@@ -11,12 +11,14 @@ import androidx.compose.ui.Modifier
 import com.example.pethome.ui.home.components.BannerCard
 import com.example.pethome.ui.home.components.BottomNavBar
 import com.example.pethome.ui.home.components.HomeTopBar
-import com.example.pethome.ui.home.components.MedicineSchedule
+import com.example.pethome.ui.home.components.ScheduleSection
 import com.example.pethome.ui.home.components.QuickAccessRow
+import com.example.pethome.viewmodel.ScheduleViewModel
 
 
 @Composable
 fun HomeScreen(
+    scheduleViewModel: ScheduleViewModel,
     onNavigate: (String) -> Unit = {},
     onLogout: () -> Unit = {}
 ) {
@@ -31,7 +33,7 @@ fun HomeScreen(
         ) {
             item { BannerCard() }
             item { QuickAccessRow(onNavigate = onNavigate) }
-            item { MedicineSchedule() }
+            item { ScheduleSection(viewModel = scheduleViewModel) }
         }
     }
 }
