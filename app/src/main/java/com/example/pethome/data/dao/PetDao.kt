@@ -27,4 +27,7 @@ interface PetDao {
 
     @Query("SELECT * FROM pets")
     fun getAllPets(): Flow<List<Pet>>
+
+    @Query("DELETE FROM pets")
+    suspend fun deleteAll()
 }

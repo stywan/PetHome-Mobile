@@ -1,7 +1,10 @@
 package com.example.pethome.repository
 
+import android.util.Log
 import com.example.pethome.data.SessionManager
-import kotlinx.coroutines.delay
+import com.example.pethome.data.remote.LoginRequest
+import com.example.pethome.data.remote.RegisterRequest
+import com.example.pethome.data.remote.RetrofitClient
 
 data class User(
     val id: String,
@@ -12,70 +15,79 @@ data class User(
 class AuthRepository(
     private val sessionManager: SessionManager
 ) {
-    private val registeredUsers = mutableListOf(
-        User(id = "1", email = "carla.rojas@gmail.com", name = "Carla Rojas") to "123456",
-        User(id = "2", email = "test@test.com", name = "test@test.com") to "password"
-    )
+
+    private val TAG = "AuthRepository"
 
     suspend fun login(email: String, password: String): Result<User> {
-        delay(1000)
+        return try {
+            Log.d(TAG, "Attempting login for: $email")
 
-        val userPair = registeredUsers.find { it.first.email == email }
-
-        return if (userPair != null && userPair.second == password) {
-            // Guardar sesión en DataStore
-            sessionManager.saveUserSession(
-                userId = userPair.first.id,
-                email = userPair.first.email,
-                name = userPair.first.name
+            val response = RetrofitClient.authApi.login(
+                LoginRequest(email, password)
             )
-            Result.success(userPair.first)
-        } else {
-            Result.failure(Exception("Correo o contraseña incorrectos"))
+
+            Log.d(TAG, "Login successful for: ${response.email}")
+
+            // Guardar token y datos de usuario en DataStore
+            sessionManager.saveUserSession(
+                userId = response.id,
+                email = response.email,
+                name = response.name,
+                token = response.token
+            )
+
+            val user = User(
+                id = response.id,
+                email = response.email,
+                name = response.name
+            )
+
+            Result.success(user)
+        } catch (e: Exception) {
+            Log.e(TAG, "Login failed", e)
+            Result.failure(Exception("Correo o contraseña incorrectos. Verifica tu conexión."))
         }
     }
 
     suspend fun register(email: String, password: String, name: String): Result<User> {
-        // Simular llamada de red
-        delay(1000)
+        return try {
+            Log.d(TAG, "Attempting registration for: $email")
 
-        // Verificar si el usuario ya existe
-        if (registeredUsers.any { it.first.email == email }) {
-            return Result.failure(Exception("El correo ya está registrado"))
+            val response = RetrofitClient.authApi.register(
+                RegisterRequest(name, email, password)
+            )
+
+            Log.d(TAG, "Registration successful for: ${response.email}")
+
+            // Guardar token y datos de usuario en DataStore
+            sessionManager.saveUserSession(
+                userId = response.id,
+                email = response.email,
+                name = response.name,
+                token = response.token
+            )
+
+            val user = User(
+                id = response.id,
+                email = response.email,
+                name = response.name
+            )
+
+            Result.success(user)
+        } catch (e: Exception) {
+            Log.e(TAG, "Registration failed", e)
+            Result.failure(Exception("Error al registrar. El correo puede estar ya registrado."))
         }
-
-        val newUser = User(
-            id = (registeredUsers.size + 1).toString(),
-            email = email,
-            name = name
-        )
-
-        registeredUsers.add(newUser to password)
-
-        // Guardar sesión automáticamente después del registro
-        sessionManager.saveUserSession(
-            userId = newUser.id,
-            email = newUser.email,
-            name = newUser.name
-        )
-
-        return Result.success(newUser)
     }
 
     suspend fun logout() {
+        Log.d(TAG, "Logging out user")
         sessionManager.clearSession()
     }
 
     suspend fun resetPassword(email: String): Result<Unit> {
-        // Simular llamada de red
-        delay(1000)
-
-        val userExists = registeredUsers.any { it.first.email == email }
-
-        return if (userExists) {
-            Result.success(Unit)
-        } else {
-            Result.failure(Exception("El correo no está registrado"))
-        }
+        // TODO: Implementar cuando el backend tenga endpoint de reset password
+        Log.d(TAG, "Reset password for: $email")
+        return Result.failure(Exception("Funcionalidad no disponible aún"))
     }
 }

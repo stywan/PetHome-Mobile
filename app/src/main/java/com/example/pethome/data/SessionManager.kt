@@ -18,14 +18,30 @@ class SessionManager(private val context: Context) {
         private val USER_ID_KEY = stringPreferencesKey("user_id")
         private val USER_EMAIL_KEY = stringPreferencesKey("user_email")
         private val USER_NAME_KEY = stringPreferencesKey("user_name")
+        private val AUTH_TOKEN_KEY = stringPreferencesKey("auth_token")
     }
 
-    // Guardar sesión del usuario
-    suspend fun saveUserSession(userId: String, email: String, name: String) {
+    // Guardar token JWT
+    suspend fun saveAuthToken(token: String) {
+        context.dataStore.edit { preferences ->
+            preferences[AUTH_TOKEN_KEY] = token
+        }
+    }
+
+    // Obtener token JWT
+    val authToken: Flow<String?> = context.dataStore.data.map { preferences ->
+        preferences[AUTH_TOKEN_KEY]
+    }
+
+    // Guardar sesión del usuario (incluyendo token si se pasa)
+    suspend fun saveUserSession(userId: String, email: String, name: String, token: String? = null) {
         context.dataStore.edit { preferences ->
             preferences[USER_ID_KEY] = userId
             preferences[USER_EMAIL_KEY] = email
             preferences[USER_NAME_KEY] = name
+            if (token != null) {
+                preferences[AUTH_TOKEN_KEY] = token
+            }
         }
     }
 
@@ -44,9 +60,9 @@ class SessionManager(private val context: Context) {
         preferences[USER_NAME_KEY]
     }
 
-    // Verificar si hay sesión activa
+    // Verificar si hay sesión activa (con token)
     val isLoggedIn: Flow<Boolean> = context.dataStore.data.map { preferences ->
-        preferences[USER_ID_KEY] != null
+        preferences[USER_ID_KEY] != null && preferences[AUTH_TOKEN_KEY] != null
     }
 
     // Cerrar sesión
