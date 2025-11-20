@@ -423,7 +423,7 @@ fun ReservationDialog(
                             readOnly = true,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .menuAnchor(),
+                                .menuAnchor(MenuAnchorType.PrimaryNotEditable, enabled = true),
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedBorderColor = Color(0xFF7A5DE8),

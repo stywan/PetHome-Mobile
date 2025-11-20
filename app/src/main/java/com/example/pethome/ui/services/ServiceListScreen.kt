@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -201,7 +202,7 @@ fun ServiceCard(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Icon(
-                            Icons.Default.ArrowForward,
+                            Icons.AutoMirrored.Filled.ArrowForward,
                             contentDescription = null,
                             tint = Color(0xFF7A5DE8),
                             modifier = Modifier.size(20.dp)
@@ -236,7 +237,7 @@ fun getCategoryColor(category: String) = when (category) {
 }
 
 fun formatPrice(price: Double): String {
-    val format = NumberFormat.getCurrencyInstance(Locale("es", "CO"))
+    val format = NumberFormat.getCurrencyInstance(Locale.Builder().setLanguage("es").setRegion("CO").build())
     return format.format(price)
 }
 

@@ -74,7 +74,7 @@ class ScheduleViewModel(
     }
 
     fun formatDate(timestamp: Long): String {
-        val sdf = SimpleDateFormat("dd MMM yyyy", Locale("es", "ES"))
+        val sdf = SimpleDateFormat("dd MMM yyyy", Locale.Builder().setLanguage("es").setRegion("ES").build())
         return sdf.format(Date(timestamp))
     }
 }
