@@ -17,20 +17,26 @@ import com.example.pethome.ui.home.HomeScreen
 import com.example.pethome.ui.login.LoginScreen
 import com.example.pethome.ui.pets.AddEditPetScreen
 import com.example.pethome.ui.pets.PetListScreen
+import com.example.pethome.ui.register.RegisterScreen
 import com.example.pethome.ui.services.ServiceDetailScreen
 import com.example.pethome.ui.services.ServiceListScreen
 import com.example.pethome.viewmodel.LoginViewModel
 import com.example.pethome.viewmodel.LoginViewModelFactory
+import com.example.pethome.viewmodel.RegisterViewModel
+import com.example.pethome.viewmodel.RegisterViewModelFactory
 import com.example.pethome.viewmodel.PetViewModel
 import com.example.pethome.viewmodel.PetViewModelFactory
 import com.example.pethome.viewmodel.ServiceViewModel
 import com.example.pethome.viewmodel.ServiceViewModelFactory
+import com.example.pethome.viewmodel.ScheduleViewModel
+import com.example.pethome.viewmodel.ScheduleViewModelFactory
 import com.example.pethome.repository.ServiceRepository
 
 
 // Rutas de navegación
 sealed class Screen(val route: String) {
     object Login : Screen("login")
+    object Register : Screen("register")
     object Home : Screen("home")
     object PetList : Screen("pet_list")
     object AddPet : Screen("add_pet")
@@ -68,7 +74,7 @@ fun NavGraph(
             LoginScreen(
                 viewModel = viewModel,
                 onNavigateToRegister = {
-                    // TODO: Implementar cuando tengamos RegisterScreen
+                    navController.navigate(Screen.Register.route)
                 },
                 onNavigateToForgotPassword = {
                     // TODO: Implementar cuando tengamos ForgotPasswordScreen
@@ -82,9 +88,41 @@ fun NavGraph(
             )
         }
 
+        // Pantalla de Registro
+        composable(Screen.Register.route) {
+            val viewModel: RegisterViewModel = viewModel(
+                factory = RegisterViewModelFactory(authRepository)
+            )
+
+            RegisterScreen(
+                viewModel = viewModel,
+                onNavigateBack = {
+                    navController.navigateUp()
+                },
+                onRegisterSuccess = {
+                    // Navegar al Home y limpiar el stack (el usuario ya está logueado)
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Login.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
         // Pantalla de Home
-        composable(Screen.Home.route) {
+        composable(Screen.Home.route) { backStackEntry ->
+            val userId by sessionManager.userId.collectAsState(initial = "")
+
+            // Compartir ViewModel a nivel de NavGraph
+            val parentEntry = remember(backStackEntry) {
+                navController.getBackStackEntry(navController.graph.id)
+            }
+            val scheduleViewModel: ScheduleViewModel = viewModel(
+                viewModelStoreOwner = parentEntry,
+                factory = ScheduleViewModelFactory(petRepository, serviceRepository, userId ?: "")
+            )
+
             HomeScreen(
+                scheduleViewModel = scheduleViewModel,
                 onNavigate = { route ->
                     navController.navigate(route)
                 },

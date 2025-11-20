@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.rememberNavController
 import com.example.pethome.data.SessionManager
+import com.example.pethome.data.remote.RetrofitClient
 import com.example.pethome.navigation.NavGraph
 import com.example.pethome.navigation.Screen
 import com.example.pethome.ui.theme.PetHomeTheme
@@ -26,6 +27,11 @@ import com.example.pethome.ui.theme.PetHomeTheme
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // IMPORTANTE: Inicializar Retrofit con SessionManager
+        val sessionManager = SessionManager(applicationContext)
+        RetrofitClient.initialize(sessionManager)
+
         enableEdgeToEdge()
         setContent {
             PetHomeTheme {
