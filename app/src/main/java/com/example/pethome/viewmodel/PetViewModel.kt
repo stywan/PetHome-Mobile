@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.pethome.data.model.Pet
 import com.example.pethome.repository.PetRepository
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,6 +20,7 @@ data class PetFormState(
     val weight: String = "",
     val gender: String = "",
     val color: String = "",
+    val imageUrl: String? = null,
     val nameError: String? = null,
     val speciesError: String? = null,
     val breedError: String? = null,
@@ -45,16 +47,30 @@ class PetViewModel(
     private val _editingPet = MutableStateFlow<Pet?>(null)
     val editingPet: StateFlow<Pet?> = _editingPet.asStateFlow()
 
+    private var loadPetsJob: Job? = null
+
     init {
         loadPets()
     }
 
     private fun loadPets() {
-        viewModelScope.launch {
-            petRepository.getPetsByUser(userId).collect { petList ->
+        // Cancelar el job anterior si existe
+        loadPetsJob?.cancel()
+
+        loadPetsJob = viewModelScope.launch {
+            try {
+                // Llamar directamente a la función suspend
+                val petList = petRepository.getPetsByUser(userId)
                 _pets.value = petList
+            } catch (e: Exception) {
+                // Si hay error al cargar, mantener lista vacía
+                _pets.value = emptyList()
             }
         }
+    }
+
+    fun refreshPets() {
+        loadPets()
     }
 
     fun onNameChange(name: String) {
@@ -85,6 +101,10 @@ class PetViewModel(
         _formState.update { it.copy(color = color, colorError = null) }
     }
 
+    fun onImageSelected(imageUri: String?) {
+        _formState.update { it.copy(imageUrl = imageUri) }
+    }
+
     fun clearError() {
         _formState.update { it.copy(errorMessage = null) }
     }
@@ -99,7 +119,8 @@ class PetViewModel(
                 age = pet.age.toString(),
                 weight = pet.weight.toString(),
                 gender = pet.gender,
-                color = pet.color
+                color = pet.color,
+                imageUrl = pet.imageUrl
             )
         }
     }
@@ -131,6 +152,7 @@ class PetViewModel(
                     weight = _formState.value.weight.toDouble(),
                     gender = _formState.value.gender,
                     color = _formState.value.color,
+                    imageUrl = _formState.value.imageUrl,
                     userId = userId
                 )
 
@@ -149,7 +171,8 @@ class PetViewModel(
                                 errorMessage = null
                             )
                         }
-                        // No limpiar el formulario aquí, se limpiará manualmente después de navegar
+                        // Recargar la lista de mascotas después de guardar
+                        loadPets()
                     },
                     onFailure = { exception ->
                         _formState.update {
@@ -174,7 +197,20 @@ class PetViewModel(
     fun deletePet(petId: String) {
         viewModelScope.launch {
             try {
-                petRepository.deletePet(petId)
+                val result = petRepository.deletePet(petId)
+                result.fold(
+                    onSuccess = {
+                        // Actualizar la lista localmente de inmediato para mejor UX
+                        _pets.value = _pets.value.filter { it.id != petId }
+                        // También recargar desde el servidor para asegurar consistencia
+                        loadPets()
+                    },
+                    onFailure = { exception ->
+                        _formState.update {
+                            it.copy(errorMessage = "Error al eliminar mascota: ${exception.message}")
+                        }
+                    }
+                )
             } catch (e: Exception) {
                 _formState.update {
                     it.copy(errorMessage = "Error al eliminar mascota: ${e.message}")

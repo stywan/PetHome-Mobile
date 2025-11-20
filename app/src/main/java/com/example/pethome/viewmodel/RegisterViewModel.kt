@@ -10,12 +10,19 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class LoginViewModel(
+class RegisterViewModel(
     private val authRepository: AuthRepository
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(LoginUiState())
-    val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(RegisterUiState())
+    val uiState: StateFlow<RegisterUiState> = _uiState.asStateFlow()
+
+    fun onNameChange(name: String) {
+        _uiState.update { it.copy(
+            name = name,
+            nameError = null
+        )}
+    }
 
     fun onEmailChange(email: String) {
         _uiState.update { it.copy(
@@ -31,9 +38,22 @@ class LoginViewModel(
         )}
     }
 
+    fun onConfirmPasswordChange(confirmPassword: String) {
+        _uiState.update { it.copy(
+            confirmPassword = confirmPassword,
+            confirmPasswordError = null
+        )}
+    }
+
     fun togglePasswordVisibility() {
         _uiState.update { it.copy(
             isPasswordVisible = !it.isPasswordVisible
+        )}
+    }
+
+    fun toggleConfirmPasswordVisibility() {
+        _uiState.update { it.copy(
+            isConfirmPasswordVisible = !it.isConfirmPasswordVisible
         )}
     }
 
@@ -41,8 +61,7 @@ class LoginViewModel(
         _uiState.update { it.copy(errorMessage = null) }
     }
 
-    fun login() {
-        // Validar campos
+    fun register() {
         if (!validateFields()) {
             return
         }
@@ -51,23 +70,24 @@ class LoginViewModel(
             _uiState.update { it.copy(isLoading = true) }
 
             try {
-                val result = authRepository.login(
+                val result = authRepository.register(
                     email = _uiState.value.email,
-                    password = _uiState.value.password
+                    password = _uiState.value.password,
+                    name = _uiState.value.name
                 )
 
                 result.fold(
                     onSuccess = { user ->
                         _uiState.update { it.copy(
                             isLoading = false,
-                            isLoginSuccessful = true,
+                            isRegisterSuccessful = true,
                             errorMessage = null
                         )}
                     },
                     onFailure = { exception ->
                         _uiState.update { it.copy(
                             isLoading = false,
-                            errorMessage = exception.message ?: "Error al iniciar sesión"
+                            errorMessage = exception.message ?: "Error al registrar usuario"
                         )}
                     }
                 )
@@ -82,6 +102,15 @@ class LoginViewModel(
 
     private fun validateFields(): Boolean {
         var isValid = true
+
+        // Validar nombre
+        if (_uiState.value.name.isBlank()) {
+            _uiState.update { it.copy(nameError = "El nombre es requerido") }
+            isValid = false
+        } else if (_uiState.value.name.length < 2) {
+            _uiState.update { it.copy(nameError = "El nombre debe tener al menos 2 caracteres") }
+            isValid = false
+        }
 
         // Validar email
         if (_uiState.value.email.isBlank()) {
@@ -101,6 +130,15 @@ class LoginViewModel(
             isValid = false
         }
 
+        // Validar confirmación de contraseña
+        if (_uiState.value.confirmPassword.isBlank()) {
+            _uiState.update { it.copy(confirmPasswordError = "Confirma tu contraseña") }
+            isValid = false
+        } else if (_uiState.value.password != _uiState.value.confirmPassword) {
+            _uiState.update { it.copy(confirmPasswordError = "Las contraseñas no coinciden") }
+            isValid = false
+        }
+
         return isValid
     }
 
@@ -110,25 +148,30 @@ class LoginViewModel(
     }
 }
 
-data class LoginUiState(
+data class RegisterUiState(
+    val name: String = "",
     val email: String = "",
     val password: String = "",
+    val confirmPassword: String = "",
     val isPasswordVisible: Boolean = false,
+    val isConfirmPasswordVisible: Boolean = false,
     val isLoading: Boolean = false,
-    val isLoginSuccessful: Boolean = false,
+    val isRegisterSuccessful: Boolean = false,
+    val nameError: String? = null,
     val emailError: String? = null,
     val passwordError: String? = null,
+    val confirmPasswordError: String? = null,
     val errorMessage: String? = null
 )
 
 // Factory para crear el ViewModel con el repositorio
-class LoginViewModelFactory(
+class RegisterViewModelFactory(
     private val authRepository: AuthRepository
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(LoginViewModel::class.java)) {
-            return LoginViewModel(authRepository) as T
+        if (modelClass.isAssignableFrom(RegisterViewModel::class.java)) {
+            return RegisterViewModel(authRepository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
