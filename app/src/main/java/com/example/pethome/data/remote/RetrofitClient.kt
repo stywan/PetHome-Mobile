@@ -46,10 +46,10 @@ object RetrofitClient {
 
         // Si hay token, añadirlo al header Authorization
         if (!token.isNullOrEmpty()) {
-            android.util.Log.d("RetrofitClient", "✅ Añadiendo token JWT al header: Bearer ${token.take(20)}...")
+            android.util.Log.d("RetrofitClient", " Añadiendo token JWT al header: Bearer ${token.take(20)}...")
             requestBuilder.addHeader("Authorization", "Bearer $token")
         } else {
-            android.util.Log.w("RetrofitClient", "⚠️ No hay token disponible para la petición: ${chain.request().url}")
+            android.util.Log.w("RetrofitClient", " No hay token disponible para la petición: ${chain.request().url}")
         }
 
         chain.proceed(requestBuilder.build())
